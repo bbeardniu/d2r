@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#17120e">
+<title>Battle Orders — Warcry Timer</title>
+<style>
+:root{--ink:#21170f;--paper:#e8d5a8;--paper2:#d8bd83;--gold:#a77b32;--red:#7d241d;--muted:#705b3d;--green:#52633b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:Georgia,"Times New Roman",serif;background:radial-gradient(ellipse at 50% 20%,#55402b 0,#241a13 55%,#100d0b 100%);padding:26px 14px;display:grid;place-items:center}
+.shell{width:min(760px,100%);position:relative;padding:13px;border:2px solid #8b682f;outline:1px solid #c7a45f;outline-offset:-7px;background:linear-gradient(135deg,#33251a,#17120e);box-shadow:0 18px 60px #000b}
+.parchment{position:relative;padding:clamp(22px,5vw,44px);background:repeating-linear-gradient(3deg,#0000 0 3px,#8e6c3610 4px 5px),radial-gradient(ellipse at 15% 12%,#fff6d8a8,transparent 38%),radial-gradient(ellipse at 85% 90%,#a47b3920,transparent 40%),linear-gradient(125deg,var(--paper),#d9c18e 60%,#ead9b2);border:1px solid #b48d4c;box-shadow:inset 0 0 35px #79552a55}
+.parchment:before,.parchment:after{content:"";position:absolute;inset:9px;border:1px solid #96723e88;pointer-events:none}
+.parchment:after{inset:14px;border:1px dashed #96723e66}
+header{text-align:center;position:relative;z-index:1}
+.kicker{font:700 11px/1.5 Arial,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#6d512b}
+h1{font-size:clamp(31px,6vw,48px);font-weight:normal;letter-spacing:.045em;margin:5px 0 0;text-shadow:1px 1px #fff4c5,-1px -1px #9d7844}
+.subtitle{font-style:italic;color:#705638;margin:4px 0 18px}
+.sig{width:88px;height:88px;margin:0 auto 10px;display:block;filter:drop-shadow(1px 2px 1px #5a381f66)}
+.rule{height:1px;background:linear-gradient(90deg,transparent,#88642e,transparent);margin:18px 0 22px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:13px;position:relative;z-index:1}
+.field{display:flex;flex-direction:column;gap:6px}
+label,.field-title{font:700 11px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#604724}
+select,input{width:100%;padding:11px 12px;border:1px solid #8d6b39;border-radius:2px;background:#f1e4c5;color:#2a1b10;font:17px Georgia,serif;box-shadow:inset 0 1px 4px #6b4a2426}
+.synergy{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:13px;padding:11px 13px;border:1px dashed #9c7845;background:#fff2d055}
+.smallnote{font:12px/1.45 Arial,sans-serif;color:#715b3b;margin:0}
+.clockbox{position:relative;z-index:1;text-align:center;margin:25px auto 16px;padding:19px 12px 15px;max-width:440px;border:2px solid #9a743d;outline:1px dashed #b38c4e;outline-offset:4px;background:radial-gradient(ellipse,#f4e7c9,#d7bf8e);box-shadow:inset 0 0 25px #8a632a44}
+.clock-label{font:700 10px Arial,sans-serif;letter-spacing:.22em;color:#76552c;text-transform:uppercase}
+#time{font:normal clamp(55px,12vw,82px)/1.08 Georgia,serif;letter-spacing:.04em;color:#3c2816;font-variant-numeric:tabular-nums;text-shadow:1px 1px #fff0c8}
+#status{font:italic 14px Georgia,serif;color:#715638;min-height:20px}
+.track{height:7px;background:#92764c55;margin:12px 4px 0;overflow:hidden;border:1px solid #8b6b3e}
+#progress{height:100%;width:100%;background:linear-gradient(90deg,#657443,#b38a3e);transition:width .2s linear}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+button{cursor:pointer;border:1px solid #54391f;padding:12px 20px;font:700 12px Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#f4e5bd;background:linear-gradient(#8c3428,#5c1e19);box-shadow:0 3px 0 #392017, inset 0 1px #d28c66;text-shadow:0 1px #32140f}
+button:hover{filter:brightness(1.12)}button:active{transform:translateY(2px);box-shadow:0 1px 0 #392017}
+button.secondary{background:linear-gradient(#71603e,#453821);border-color:#47351e;box-shadow:0 3px 0 #302315,inset 0 1px #c2a66a}
+button:disabled{opacity:.45;cursor:not-allowed}
+.extras{position:relative;z-index:1;margin-top:25px;border-top:1px solid #9b7947;padding-top:16px}
+.extras h2{font-size:18px;font-weight:normal;margin:0 0 8px}
+.listenrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.listenrow p{margin:0;max-width:450px;font:12px/1.5 Arial,sans-serif;color:#6b5435}
+#listenState{font:700 11px Arial,sans-serif;color:#704b22;margin-top:8px;min-height:16px}
+footer{position:relative;z-index:1;text-align:center;margin-top:22px;font:11px/1.5 Arial,sans-serif;color:#795f3a}
+@media(max-width:520px){.controls{grid-template-columns:1fr}.synergy{grid-column:auto}.parchment{padding:25px 19px}.shell{padding:9px}}
+</style>
+</head>
+<body>
+<main class="shell">
+ <section class="parchment">
+  <header>
+   <svg class="sig" viewBox="0 0 100 100" role="img" aria-label="Hand-drawn warcry emblem">
+    <path d="M50 5 L60 18 L78 13 L80 31 L95 42 L83 57 L88 76 L68 79 L56 95 L42 83 L23 88 L20 69 L5 57 L17 42 L12 23 L32 20Z" fill="#b38a48" stroke="#58391f" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M26 30 Q49 18 74 31 L67 40 Q50 33 34 42Z" fill="#7e281e" stroke="#4c2818" stroke-width="2"/>
+    <path d="M22 55 Q50 40 78 55 L70 65 Q49 57 30 68Z" fill="#7e281e" stroke="#4c2818" stroke-width="2"/>
+    <path d="M34 27 L49 48 L66 27 M34 70 L49 51 L66 70" fill="none" stroke="#f0d79d" stroke-width="4" stroke-linecap="round"/>
+    <path d="M49 17 L52 38 L45 50 L54 62 L49 83" fill="none" stroke="#4a321d" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M15 48 Q7 38 13 30 M85 48 Q94 38 87 29" fill="none" stroke="#f2d79c" stroke-width="2" stroke-linecap="round"/>
+   </svg>
+   <div class="kicker">Barbarian • Warcries</div>
+   <h1>Battle Orders</h1>
+   <p class="subtitle">A warcry is only as good as its timing.</p>
+  </header>
+  <div class="rule"></div>
+  <section class="controls" aria-label="Battle Orders settings">
+   <div class="field">
+    <label for="boLevel">Battle Orders skill level</label>
+    <select id="boLevel"></select>
+   </div>
+   <div class="field">
+    <label for="shoutLevel">Shout hard points</label>
+    <select id="shoutLevel"></select>
+   </div>
+   <div class="synergy">
+    <div class="field">
+     <label for="bcLevel">Battle Command hard points</label>
+     <select id="bcLevel"></select>
+    </div>
+    <div class="field">
+     <span class="field-title">Total duration</span>
+     <div id="durationLabel" style="font:22px Georgia,serif;padding:7px 0;color:#452d18">—</div>
+     <p class="smallnote">Includes +5 seconds per hard point in Shout and Battle Command.</p>
+    </div>
+   </div>
+  </section>
+  <section class="clockbox" aria-live="polite">
+   <div class="clock-label">Battle Orders remaining</div>
+   <div id="time">00:00</div>
+   <div id="status">Ready when you are, hero.</div>
+   <div class="track"><div id="progress"></div></div>
+  </section>
+  <div class="actions">
+   <button id="start">Cast Battle Orders</button>
+   <button id="reset" class="secondary">Reset</button>
+  </div>
+  <section class="extras">
+   <h2>Optional · Listen for the warcry</h2>
+   <div class="listenrow">
+    <p>Share your Diablo II game tab with audio. The timer will watch for a strong sound burst and start automatically. This is a best-effort sound trigger, not true recognition of the Battle Orders voice line.</p>
+    <button id="listen" class="secondary">Enable audio trigger</button>
+   </div>
+   <div id="listenState">Audio trigger is off.</div>
+  </section>
+  <footer>Battle Orders duration: 30s at level 1, +10s per skill level, plus 5s per hard point in Shout and Battle Command. Your +skills are included in the BO level selector.</footer>
+ </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const bo = $('boLevel'), shout = $('shoutLevel'), bc = $('bcLevel');
+for(let i=1;i<=99;i++){const o=document.createElement('option');o.value=i;o.textContent=`${i}${i===1?' (base)':i===20?'':' '}`;bo.append(o)}
+for(let i=0;i<=20;i++){for(const s of [shout,bc]){const o=document.createElement('option');o.value=i;o.textContent=i;s.append(o)}}
+bo.value=20;
+function totalSeconds(){return 30+10*(Number(bo.value)-1)+5*(Number(shout.value)+Number(bc.value))}
+function fmt(sec){sec=Math.max(0,Math.ceil(sec));return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`}
+let endAt=0, total=0, raf=0, running=false, stream=null, audioCtx=null, analyser=null, audioFrame=0, noiseFloor=0, lastTrigger=0;
+function updateDuration(){const s=totalSeconds();$('durationLabel').textContent=fmt(s);if(!running){$('time').textContent=fmt(s);$('progress').style.width='100%'}}
+[bo,shout,bc].forEach(x=>x.addEventListener('change',updateDuration));
+function tick(){const left=Math.max(0,(endAt-performance.now())/1000);$('time').textContent=fmt(left);$('progress').style.width=`${Math.max(0,left/total*100)}%`;if(left<=0){running=false;$('status').textContent='Battle Orders has expired. Recast!';$('progress').style.width='0%';chime();return}raf=requestAnimationFrame(tick)}
+function startTimer(source='manual'){cancelAnimationFrame(raf);total=totalSeconds();endAt=performance.now()+total*1000;running=true;$('status').textContent=source==='audio'?'Warcry detected — timer started.':'The warcry echoes…';tick()}
+function resetTimer(){running=false;cancelAnimationFrame(raf);updateDuration();$('status').textContent='Ready when you are, hero.'}
+function chime(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C();[0,0.22,0.44].forEach((d,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=[784,988,1175][i];g.gain.setValueAtTime(.0001,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.22,c.currentTime+d+.025);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+d+.42);o.connect(g);g.connect(c.destination);o.start(c.currentTime+d);o.stop(c.currentTime+d+.45)});setTimeout(()=>c.close(),1200)}catch(e){}}
+$('start').addEventListener('click',()=>startTimer());
+$('reset').addEventListener('click',resetTimer);
+function stopListening(){if(audioFrame)cancelAnimationFrame(audioFrame);audioFrame=0;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(audioCtx)audioCtx.close();audioCtx=null;analyser=null;$('listen').textContent='Enable audio trigger';$('listenState').textContent='Audio trigger is off.'}
+async function enableListening(){
+ if(stream){stopListening();return}
+ if(!navigator.mediaDevices?.getDisplayMedia){$('listenState').textContent='This browser does not support tab audio capture. Try desktop Chrome or Edge.';return}
+ try{
+  stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
+  const track=stream.getAudioTracks()[0];
+  if(!track){stopListening();$('listenState').textContent='No shared audio track. Re-share the game tab and enable “Share tab audio”.';return}
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  const src=audioCtx.createMediaStreamSource(stream);analyser=audioCtx.createAnalyser();analyser.fftSize=1024;src.connect(analyser);
+  const data=new Uint8Array(analyser.fftSize);noiseFloor=0;lastTrigger=0;
+  $('listen').textContent='Stop audio trigger';$('listenState').textContent='Listening to shared tab audio. Keep this page open.';
+  stream.getTracks().forEach(t=>t.addEventListener('ended',stopListening));
+  const sample=()=>{
+   if(!analyser)return;analyser.getByteTimeDomainData(data);let sum=0;for(let i=0;i<data.length;i++){const v=(data[i]-128)/128;sum+=v*v}
+   const rms=Math.sqrt(sum/data.length);noiseFloor=noiseFloor===0?rms:noiseFloor*.985+rms*.015;
+   const threshold=Math.max(.035,noiseFloor*3.2);
+   const now=performance.now();
+   if(rms>threshold&&rms>.045&&now-lastTrigger>3500){lastTrigger=now;startTimer('audio');}
+   audioFrame=requestAnimationFrame(sample);
+  };sample();
+ }catch(e){stopListening();$('listenState').textContent=e.name==='NotAllowedError'?'Audio sharing was cancelled or blocked.':'Could not start audio capture. Try sharing a browser tab with audio.'}
+}
+$('listen').addEventListener('click',enableListening);
+updateDuration();
+</script>
+</body>
+</html>
